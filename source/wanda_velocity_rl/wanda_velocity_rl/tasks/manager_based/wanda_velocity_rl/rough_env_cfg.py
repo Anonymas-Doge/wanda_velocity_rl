@@ -5,7 +5,7 @@ from .velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 ##
 # Pre-defined configs
 ##
-from wanda import WANDA_CFG
+from .wanda import WANDA_CFG
 
 @configclass
 class WandaRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
@@ -13,8 +13,8 @@ class WandaRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # post init of parent
         super().__post_init__()
 
-        self.scene.robot = WANDA_CFG.replace(prim_path="{ENV_REGEX_NS}/robot")
-        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/robot/chassis_link"
+        self.scene.robot = WANDA_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/chassis_link"
         # scale down the terrains because the robot is small
         self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
@@ -53,7 +53,8 @@ class WandaRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "chassis_link"
         
-        self.world.set_physics_setp_size(1.0 / 240.0)
+        self.sim.dt = 1.0 / 240.0
+        self.decimation = 4
 
 @configclass
 class WandaRoughEnvCfg_PLAY(WandaRoughEnvCfg):
