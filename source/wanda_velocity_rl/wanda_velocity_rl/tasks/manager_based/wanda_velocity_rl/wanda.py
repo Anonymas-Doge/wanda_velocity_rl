@@ -5,11 +5,11 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-ROBOT_ASSETS_DIR = os.getenv("ROBOT_ASSETS_DIR")
+WANDA_DIR = os.getenv("WANDA_DIR")
 
 WANDA_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ROBOT_ASSETS_DIR}/wanda.usd",
+        usd_path=WANDA_DIR,
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             rigid_body_enabled=True,

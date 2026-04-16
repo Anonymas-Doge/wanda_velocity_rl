@@ -1,4 +1,4 @@
-# Template for Isaac Lab Projects
+# Velocity-Based Reinforcement Learning for Wanda
 
 ## Overview
 
@@ -19,6 +19,9 @@ It allows you to develop in an isolated environment, outside of the core Isaac L
 
 - Clone or copy this project/repository separately from the Isaac Lab installation (i.e. outside the `IsaacLab` directory):
 
+- Add .env with wanda.usd path:
+   ```
+   ROBOT_ASSETS_DIR="C:/IsaacLab/robot_assets/wanda.usd"
 - Using a python interpreter that has Isaac Lab installed, install the library in editable mode using:
 
     ```bash
