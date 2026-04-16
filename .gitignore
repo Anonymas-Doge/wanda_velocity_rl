@@ -21,6 +21,7 @@
 **/.pytest_cache/
 **/*.pyc
 **/*.pb
+scripts/rsl_rl/__pycache__ # not included in previous pycache ignore ???
 
 # Docker/Singularity
 **/*.sif
