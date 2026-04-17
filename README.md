@@ -21,7 +21,7 @@ It allows you to develop in an isolated environment, outside of the core Isaac L
 
 - Add .env with wanda.usd path:
    ```
-   ROBOT_ASSETS_DIR="C:/IsaacLab/robot_assets/wanda.usd"
+   WANDA_DIR="C:/IsaacLab/robot_assets/wanda.usd"
 - Using a python interpreter that has Isaac Lab installed, install the library in editable mode using:
 
     ```bash
