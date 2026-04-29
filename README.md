@@ -43,8 +43,11 @@ It allows you to develop in an isolated environment, outside of the core Isaac L
     - Running a task:
 
         ```bash
-        # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-        python scripts/<RL_LIBRARY>/train.py --task=<TASK_NAME>
+        conda activate env_isaaclab
+        python ./scripts/rsl_rl/train.py --task="Isaac-Velocity-Flat-Wanda-v0" --num_envs=<num_envs>
+        python ./scripts/rsl_rl/train.py --task="Isaac-Velocity-Flat-Wanda-Play-v0" --num_envs=<num_envs>
+        python ./scripts/rsl_rl/train.py --task="Isaac-Velocity-Rough-Wanda-v0" --num_envs=<num_envs>
+        python ./scripts/rsl_rl/train.py --task="Isaac-Velocity-Rough-Wanda-Play-v0" --num_envs=<num_envs>
         ```
 
     - Running a task with dummy agents:
