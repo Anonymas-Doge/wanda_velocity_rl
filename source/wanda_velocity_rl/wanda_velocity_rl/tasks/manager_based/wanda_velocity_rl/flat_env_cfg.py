@@ -9,9 +9,8 @@ class WandaFlatEnvCfg(WandaRoughEnvCfg):
         # post init of parent
         super().__post_init__()
 
-        # override rewards
-        self.rewards.flat_orientation_l2.weight = -2.5
-        self.rewards.feet_air_time.weight = 0.1
+        # reduce air time reward on flat terrain
+        self.rewards.air_time.weight = 0.1
 
         # change terrain to flat
         self.scene.terrain.terrain_type = "plane"

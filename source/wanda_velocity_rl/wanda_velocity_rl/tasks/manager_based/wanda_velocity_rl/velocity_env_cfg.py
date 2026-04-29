@@ -23,7 +23,7 @@ from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 
-import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
+from . import mdp
 
 ##
 # Pre-defined configs
@@ -229,38 +229,95 @@ class EventCfg:
 
 @configclass
 class RewardsCfg:
-    """Reward terms for the MDP."""
-
     # -- task
-    track_lin_vel_xy_exp = RewTerm(
-        func=mdp.track_lin_vel_xy_exp, weight=1.5, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
-    )
-    track_ang_vel_z_exp = RewTerm(
-        func=mdp.track_ang_vel_z_exp, weight=0.75, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
-    )
-    # -- penalties
-    lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-1.0)
-    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.03)
-    dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-5.0e-6)
-    dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7)
-    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.005)
-    feet_air_time = RewTerm(
-        func=mdp.feet_air_time,
-        weight=0.2,
+    air_time = RewTerm(
+        func=mdp.air_time_reward,
+        weight=5.0,
         params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot"),
-            "command_name": "base_velocity",
-            "threshold": 0.25,
+            "mode_time": 0.3,
+            "velocity_threshold": 0.3,
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link"),
         },
     )
-    undesired_contacts = RewTerm(
-        func=mdp.undesired_contacts,
-        weight=-1.0,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*thigh"), "threshold": 1.0},
+    base_angular_velocity = RewTerm(
+        func=mdp.base_angular_velocity_reward,
+        weight=5.0,
+        params={"std": 0.25, "asset_cfg": SceneEntityCfg("robot")},
     )
-    # -- optional penalties
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=0.0)
-    dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=0.0)
+    base_linear_velocity = RewTerm(
+        func=mdp.base_linear_velocity_reward,
+        weight=5.0,
+        params={"std": 0.25, "ramp_rate": 0.5, "ramp_at_vel": 0.8, "asset_cfg": SceneEntityCfg("robot")},
+    )
+    foot_clearance = RewTerm(
+        func=mdp.foot_clearance_reward,
+        weight=0.5,
+        params={
+            "std": 0.025,
+            "tanh_mult": 2.0,
+            "target_height": 0.08,
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot_link"),
+        },
+    )
+    gait = RewTerm(
+        func=mdp.WandaGaitReward,
+        weight=10.0,
+        params={
+            "std": 0.25,
+            "max_err": 0.2,
+            "velocity_threshold": 0.3,
+            "synced_feet_pair_names": (("fl_foot_link", "br_foot_link"), ("fr_foot_link", "bl_foot_link")),
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces"),
+        },
+    )
+    # -- penalties
+    action_smoothness = RewTerm(func=mdp.action_smoothness_penalty, weight=-0.01)
+    air_time_variance = RewTerm(
+        func=mdp.air_time_variance_penalty,
+        weight=-1.0,
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link")},
+    )
+    base_motion = RewTerm(
+        func=mdp.base_motion_penalty, weight=-2.0, params={"asset_cfg": SceneEntityCfg("robot")}
+    )
+    base_orientation = RewTerm(
+        func=mdp.base_orientation_penalty, weight=-3.0, params={"asset_cfg": SceneEntityCfg("robot")}
+    )
+    foot_slip = RewTerm(
+        func=mdp.foot_slip_penalty,
+        weight=-0.5,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot_link"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link"),
+            "threshold": 1.0,
+        },
+    )
+    joint_acc = RewTerm(
+        func=mdp.joint_acceleration_penalty,
+        weight=-2.5e-7,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
+    joint_pos = RewTerm(
+        func=mdp.joint_position_penalty,
+        weight=-0.7,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "stand_still_scale": 2.0,
+            "velocity_threshold": 0.3,
+        },
+    )
+    joint_torques = RewTerm(
+        func=mdp.joint_torques_penalty,
+        weight=-1.0e-5,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
+    joint_vel = RewTerm(
+        func=mdp.joint_velocity_penalty,
+        weight=-1.0e-2,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
 
 
 @configclass
