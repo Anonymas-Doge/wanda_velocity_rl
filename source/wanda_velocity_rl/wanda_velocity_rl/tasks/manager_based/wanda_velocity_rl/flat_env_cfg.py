@@ -190,7 +190,7 @@ class WandaRewardsCfg:
     # -- task
     air_time = RewardTermCfg(
         func=wanda_mdp.air_time_reward,
-        weight=5.0,
+        weight=6.0,
         params={
             "mode_time": 0.3,
             "velocity_threshold": 0.5,
@@ -200,27 +200,27 @@ class WandaRewardsCfg:
     )
     base_angular_velocity = RewardTermCfg(
         func=wanda_mdp.base_angular_velocity_reward,
-        weight=5.0,
-        params={"std": 2.0, "asset_cfg": SceneEntityCfg("robot")},
+        weight=6.0,
+        params={"std": 2.5, "asset_cfg": SceneEntityCfg("robot")},
     )
     base_linear_velocity = RewardTermCfg(
         func=wanda_mdp.base_linear_velocity_reward,
-        weight=5.0,
-        params={"std": 1.0, "ramp_rate": 0.5, "ramp_at_vel": 1.0, "asset_cfg": SceneEntityCfg("robot")},
+        weight=6.0,
+        params={"std": 1.25, "ramp_rate": 0.5, "ramp_at_vel": 1.0, "asset_cfg": SceneEntityCfg("robot")},
     )
     foot_clearance = RewardTermCfg(
         func=wanda_mdp.foot_clearance_reward,
-        weight=0.5,
+        weight=0.75,
         params={
-            "std": 0.05,
+            "std": 0.04,
             "tanh_mult": 2.0,
-            "target_height": 0.1,
+            "target_height": 0.12,
             "asset_cfg": SceneEntityCfg("robot", body_names=".*foot_link"),
         },
     )
     gait = RewardTermCfg(
         func=wanda_mdp.GaitReward,
-        weight=10.0,
+        weight=12.0,
         params={
             "std": 0.1,
             "max_err": 0.2,
@@ -232,21 +232,21 @@ class WandaRewardsCfg:
     )
 
     # -- penalties
-    action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-1.0)
+    action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-0.75)
     air_time_variance = RewardTermCfg(
         func=wanda_mdp.air_time_variance_penalty,
-        weight=-1.0,
+        weight=-0.75,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link")},
     )
     base_motion = RewardTermCfg(
-        func=wanda_mdp.base_motion_penalty, weight=-2.0, params={"asset_cfg": SceneEntityCfg("robot")}
+        func=wanda_mdp.base_motion_penalty, weight=-3.0, params={"asset_cfg": SceneEntityCfg("robot")}
     )
     base_orientation = RewardTermCfg(
-        func=wanda_mdp.base_orientation_penalty, weight=-3.0, params={"asset_cfg": SceneEntityCfg("robot")}
+        func=wanda_mdp.base_orientation_penalty, weight=-4.0, params={"asset_cfg": SceneEntityCfg("robot")}
     )
     foot_slip = RewardTermCfg(
         func=wanda_mdp.foot_slip_penalty,
-        weight=-0.5,
+        weight=-0.75,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot_link"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link"),
@@ -255,26 +255,26 @@ class WandaRewardsCfg:
     )
     joint_acc = RewardTermCfg(
         func=wanda_mdp.joint_acceleration_penalty,
-        weight=-1.0e-4,
+        weight=-5.0e-5,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=SHOULDER_JOINTS)},
     )
     joint_pos = RewardTermCfg(
         func=wanda_mdp.joint_position_penalty,
-        weight=-0.7,
+        weight=-0.5,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=DRIVEN_JOINTS),
-            "stand_still_scale": 5.0,
+            "stand_still_scale": 3.0,
             "velocity_threshold": 0.5,
         },
     )
     joint_torques = RewardTermCfg(
         func=wanda_mdp.joint_torques_penalty,
-        weight=-5.0e-4,
+        weight=-2.0e-4,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=DRIVEN_JOINTS)},
     )
     joint_vel = RewardTermCfg(
         func=wanda_mdp.joint_velocity_penalty,
-        weight=-1.0e-2,
+        weight=-5.0e-3,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=SHOULDER_JOINTS)},
     )
 

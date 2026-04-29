@@ -219,7 +219,7 @@ def base_motion_penalty(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> to
     """Penalize base vertical and roll/pitch velocity"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
-    return 0.8 * torch.square(asset.data.root_lin_vel_b[:, 2]) + 0.2 * torch.sum(
+    return 1.0 * torch.square(asset.data.root_lin_vel_b[:, 2]) + 0.3 * torch.sum(
         torch.abs(asset.data.root_ang_vel_b[:, :2]), dim=1
     )
 
