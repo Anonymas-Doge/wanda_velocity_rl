@@ -39,9 +39,9 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
     difficulty_range=(0.0, 1.0),
     use_cache=False,
     sub_terrains={
-        "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.2),
+        "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.6),
         "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
-            proportion=0.2, noise_range=(0.02, 0.05), noise_step=0.02, border_width=0.25
+            proportion=0.4, noise_range=(0.02, 0.05), noise_step=0.02, border_width=0.25
         ),
     },
 )
@@ -60,13 +60,13 @@ class WandaCommandsCfg:
 
     base_velocity = mdp.UniformVelocityCommandCfg(
         asset_name="robot",
-        resampling_time_range=(10.0, 10.0),
-        rel_standing_envs=0.1,
+        resampling_time_range=(6.0, 10.0),
+        rel_standing_envs=0.02,
         rel_heading_envs=0.0,
         heading_command=False,
         debug_vis=True,
         ranges=mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(-2.0, 3.0), lin_vel_y=(-1.5, 1.5), ang_vel_z=(-2.0, 2.0)
+            lin_vel_x=(-0.5, 1.5), lin_vel_y=(-0.6, 0.6), ang_vel_z=(-1.2, 1.2)
         ),
     )
 
@@ -153,12 +153,12 @@ class WandaEventCfg:
             "asset_cfg": SceneEntityCfg("robot"),
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
             "velocity_range": {
-                "x": (-1.5, 1.5),
-                "y": (-1.0, 1.0),
-                "z": (-0.5, 0.5),
-                "roll": (-0.7, 0.7),
-                "pitch": (-0.7, 0.7),
-                "yaw": (-1.0, 1.0),
+                "x": (-0.5, 0.5),
+                "y": (-0.4, 0.4),
+                "z": (-0.2, 0.2),
+                "roll": (-0.4, 0.4),
+                "pitch": (-0.4, 0.4),
+                "yaw": (-0.6, 0.6),
             },
         },
     )
@@ -177,10 +177,10 @@ class WandaEventCfg:
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(10.0, 15.0),
+        interval_range_s=(15.0, 25.0),
         params={
             "asset_cfg": SceneEntityCfg("robot"),
-            "velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)},
+            "velocity_range": {"x": (-0.3, 0.3), "y": (-0.3, 0.3)},
         },
     )
 
@@ -205,8 +205,8 @@ class WandaRewardsCfg:
     )
     base_linear_velocity = RewardTermCfg(
         func=wanda_mdp.base_linear_velocity_reward,
-        weight=6.0,
-        params={"std": 1.25, "ramp_rate": 0.5, "ramp_at_vel": 1.0, "asset_cfg": SceneEntityCfg("robot")},
+        weight=8.0,
+        params={"std": 1.0, "ramp_rate": 0.5, "ramp_at_vel": 1.0, "asset_cfg": SceneEntityCfg("robot")},
     )
     foot_clearance = RewardTermCfg(
         func=wanda_mdp.foot_clearance_reward,
@@ -220,7 +220,7 @@ class WandaRewardsCfg:
     )
     gait = RewardTermCfg(
         func=wanda_mdp.GaitReward,
-        weight=12.0,
+        weight=8.0,
         params={
             "std": 0.1,
             "max_err": 0.2,
@@ -230,23 +230,33 @@ class WandaRewardsCfg:
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link"),
         },
     )
+    low_speed = RewardTermCfg(
+        func=wanda_mdp.low_speed_penalty,
+        weight=-2.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "command_name": "base_velocity",
+            "command_threshold": 0.2,
+            "velocity_ratio": 0.5,
+        },
+    )
 
     # -- penalties
-    action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-0.75)
+    action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-0.4)
     air_time_variance = RewardTermCfg(
         func=wanda_mdp.air_time_variance_penalty,
-        weight=-0.75,
+        weight=-0.4,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link")},
     )
     base_motion = RewardTermCfg(
-        func=wanda_mdp.base_motion_penalty, weight=-3.0, params={"asset_cfg": SceneEntityCfg("robot")}
+        func=wanda_mdp.base_motion_penalty, weight=-2.0, params={"asset_cfg": SceneEntityCfg("robot")}
     )
     base_orientation = RewardTermCfg(
-        func=wanda_mdp.base_orientation_penalty, weight=-4.0, params={"asset_cfg": SceneEntityCfg("robot")}
+        func=wanda_mdp.base_orientation_penalty, weight=-2.5, params={"asset_cfg": SceneEntityCfg("robot")}
     )
     foot_slip = RewardTermCfg(
         func=wanda_mdp.foot_slip_penalty,
-        weight=-0.75,
+        weight=-0.4,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot_link"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link"),
@@ -263,8 +273,8 @@ class WandaRewardsCfg:
         weight=-0.5,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=DRIVEN_JOINTS),
-            "stand_still_scale": 3.0,
-            "velocity_threshold": 0.5,
+            "stand_still_scale": 1.5,
+            "velocity_threshold": 0.2,
         },
     )
     joint_torques = RewardTermCfg(
@@ -378,3 +388,4 @@ class WandaFlatEnvCfg_PLAY(WandaFlatEnvCfg):
         # disable randomization for play
         self.observations.policy.enable_corruption = False
         # remove random pushing event
+        self.events.push_robot = None

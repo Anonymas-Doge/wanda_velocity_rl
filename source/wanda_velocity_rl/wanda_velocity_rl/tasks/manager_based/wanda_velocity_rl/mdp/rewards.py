@@ -219,9 +219,31 @@ def base_motion_penalty(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> to
     """Penalize base vertical and roll/pitch velocity"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
-    return 1.0 * torch.square(asset.data.root_lin_vel_b[:, 2]) + 0.3 * torch.sum(
+    return 0.8 * torch.square(asset.data.root_lin_vel_b[:, 2]) + 0.2 * torch.sum(
         torch.abs(asset.data.root_ang_vel_b[:, :2]), dim=1
     )
+
+
+def low_speed_penalty(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    command_name: str = "base_velocity",
+    command_threshold: float = 0.2,
+    velocity_ratio: float = 0.5,
+) -> torch.Tensor:
+    """Penalize moving too slowly when a non-trivial command is given.
+
+    This discourages the local optimum where the policy stands almost still to avoid
+    regularization penalties despite non-zero velocity commands.
+    """
+    asset: RigidObject = env.scene[asset_cfg.name]
+    cmd = env.command_manager.get_command(command_name)
+    cmd_xy = torch.linalg.norm(cmd[:, :2], dim=1)
+    body_xy = torch.linalg.norm(asset.data.root_lin_vel_b[:, :2], dim=1)
+
+    min_required_speed = velocity_ratio * cmd_xy
+    speed_shortfall = torch.clamp(min_required_speed - body_xy, min=0.0)
+    return torch.where(cmd_xy > command_threshold, speed_shortfall, torch.zeros_like(speed_shortfall))
 
 
 def base_orientation_penalty(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
