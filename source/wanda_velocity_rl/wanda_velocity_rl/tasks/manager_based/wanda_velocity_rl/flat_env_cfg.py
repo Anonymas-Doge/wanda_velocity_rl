@@ -241,6 +241,34 @@ class WandaRewardsCfg:
         },
     )
 
+    forward_progress = RewardTermCfg(
+        func=wanda_mdp.forward_progress_reward,
+        weight=6.0,
+        params={
+            "min_cmd": 0.05,
+            "asset_cfg": SceneEntityCfg("robot"),
+            "command_name": "base_velocity",
+        },
+    )
+    yaw_suppression = RewardTermCfg(
+        func=wanda_mdp.yaw_suppression_penalty,
+        weight=-3.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "command_name": "base_velocity",
+            "deadband": 0.05,
+        },
+    )
+    step_frequency = RewardTermCfg(
+        func=wanda_mdp.step_frequency_reward,
+        weight=3.0,
+        params={
+            "target_frequency": 2.0,
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link"),
+        },
+    )
+
     # -- penalties
     action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-0.4)
     air_time_variance = RewardTermCfg(

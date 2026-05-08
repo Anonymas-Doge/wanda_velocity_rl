@@ -246,6 +246,48 @@ def low_speed_penalty(
     return torch.where(cmd_xy > command_threshold, speed_shortfall, torch.zeros_like(speed_shortfall))
 
 
+def forward_progress_reward(
+    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, command_name: str = "base_velocity", min_cmd: float = 0.05
+) -> torch.Tensor:
+    """Reward forward progress along the commanded direction (dot product).
+
+    Only rewards velocity component aligned with the commanded horizontal velocity.
+    """
+    asset: RigidObject = env.scene[asset_cfg.name]
+    cmd = env.command_manager.get_command(command_name)[:, :2]
+    cmd_mag = torch.linalg.norm(cmd, dim=1)
+    # avoid divide by zero
+    cmd_mag_safe = cmd_mag.unsqueeze(1) + 1e-6
+    cmd_dir = cmd / cmd_mag_safe
+    forward_proj = torch.sum(asset.data.root_lin_vel_b[:, :2] * cmd_dir, dim=1)
+    # only consider meaningful commands
+    return torch.where(cmd_mag > min_cmd, torch.clamp(forward_proj, min=0.0), torch.zeros_like(forward_proj))
+
+
+def step_frequency_reward(
+    env: ManagerBasedRLEnv, target_frequency: float, asset_cfg: SceneEntityCfg, sensor_cfg: SceneEntityCfg
+) -> torch.Tensor:
+    """Reward the robot when its average foot contact frequency matches the `target_frequency`.
+
+    Args:
+        env: The environment instance.
+        target_frequency: Desired average foot contact frequency (Hz).
+        asset_cfg: SceneEntityCfg for the robot (used for body ids if needed).
+        sensor_cfg: SceneEntityCfg pointing to the contact sensor that tracks last contact/air times.
+    """
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    if contact_sensor.cfg.track_air_time is False:
+        raise RuntimeError("Activate ContactSensor's track_air_time!")
+    last_contact = contact_sensor.data.last_contact_time[:, sensor_cfg.body_ids]
+    last_air = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
+    period = last_contact + last_air
+    freq = 1.0 / (period + 1e-6)
+    # average frequency across feet
+    avg_freq = torch.mean(freq, dim=1)
+    # similarity reward: exponential kernel around the target frequency
+    return torch.exp(-torch.abs(avg_freq - target_frequency))
+
+
 def base_orientation_penalty(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Penalize non-flat base orientation
 
@@ -254,6 +296,42 @@ def base_orientation_penalty(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) 
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return torch.linalg.norm((asset.data.projected_gravity_b[:, :2]), dim=1)
+
+
+def yaw_suppression_penalty(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    command_name: str = "base_velocity",
+    deadband: float = 0.2,
+) -> torch.Tensor:
+    """Penalize yaw-rate when no yaw command is present.
+
+    The penalty scales down as commanded yaw magnitude increases (within `deadband`).
+    """
+    asset: RigidObject = env.scene[asset_cfg.name]
+    cmd = env.command_manager.get_command(command_name)[:, 2]
+    cmd_abs = torch.abs(cmd)
+    # factor in [0,1] that is 1 when cmd_abs==0 and goes to 0 at cmd_abs>=deadband
+    factor = torch.clamp(1.0 - cmd_abs / (deadband + 1e-6), min=0.0)
+    yaw_rate = torch.abs(asset.data.root_ang_vel_b[:, 2])
+    return factor * yaw_rate
+
+
+def foot_contact_balance_penalty(
+    env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, epsilon: float = 1e-6
+) -> torch.Tensor:
+    """Penalize imbalance in foot contact duty cycles across legs.
+
+    Computes per-foot duty = last_contact_time / (last_contact_time + last_air_time)
+    and returns the variance across feet (lower is better).
+    """
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    if contact_sensor.cfg.track_air_time is False:
+        raise RuntimeError("Activate ContactSensor's track_air_time!")
+    last_contact = contact_sensor.data.last_contact_time[:, sensor_cfg.body_ids]
+    last_air = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
+    duty = last_contact / (last_contact + last_air + epsilon)
+    return torch.var(duty, dim=1)
 
 
 def foot_slip_penalty(
