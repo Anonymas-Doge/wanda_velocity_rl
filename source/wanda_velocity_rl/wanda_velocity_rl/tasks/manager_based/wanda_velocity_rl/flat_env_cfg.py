@@ -190,7 +190,7 @@ class WandaRewardsCfg:
     # -- task
     air_time = RewardTermCfg(
         func=wanda_mdp.air_time_reward,
-        weight=6.0,
+        weight=4.5,
         params={
             "mode_time": 0.3,
             "velocity_threshold": 0.5,
@@ -210,7 +210,7 @@ class WandaRewardsCfg:
     )
     foot_clearance = RewardTermCfg(
         func=wanda_mdp.foot_clearance_reward,
-        weight=0.75,
+        weight=0.25,
         params={
             "std": 0.04,
             "tanh_mult": 2.0,
@@ -220,7 +220,7 @@ class WandaRewardsCfg:
     )
     gait = RewardTermCfg(
         func=wanda_mdp.GaitReward,
-        weight=8.0,
+        weight=10.0,
         params={
             "std": 0.1,
             "max_err": 0.2,
@@ -243,7 +243,7 @@ class WandaRewardsCfg:
 
     forward_progress = RewardTermCfg(
         func=wanda_mdp.forward_progress_reward,
-        weight=6.0,
+        weight=4.0,
         params={
             "min_cmd": 0.05,
             "asset_cfg": SceneEntityCfg("robot"),
@@ -261,7 +261,7 @@ class WandaRewardsCfg:
     )
     step_frequency = RewardTermCfg(
         func=wanda_mdp.step_frequency_reward,
-        weight=3.0,
+        weight=2.0,
         params={
             "target_frequency": 2.0,
             "asset_cfg": SceneEntityCfg("robot"),
@@ -273,7 +273,7 @@ class WandaRewardsCfg:
     action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-0.4)
     air_time_variance = RewardTermCfg(
         func=wanda_mdp.air_time_variance_penalty,
-        weight=-0.4,
+        weight=-0.6,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link")},
     )
     base_motion = RewardTermCfg(
@@ -284,7 +284,7 @@ class WandaRewardsCfg:
     )
     foot_slip = RewardTermCfg(
         func=wanda_mdp.foot_slip_penalty,
-        weight=-0.4,
+        weight=-0.6,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot_link"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link"),

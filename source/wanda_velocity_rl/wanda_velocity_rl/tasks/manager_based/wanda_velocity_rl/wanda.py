@@ -40,8 +40,8 @@ WANDA_CFG = ArticulationCfg(
     actuators={
         "base_legs": DCMotorCfg( #ImplicitActuatorCfg(
             joint_names_expr=[".*_shoulder_pitch_joint", ".*_shoulder_roll_joint", ".*_tendonDriver_joint"],
-            effort_limit_sim=40.0, # effort larger than reality to compensate for articulation inaccuracy
-            saturation_effort=40.0,
+            effort_limit_sim=36.0, # effort larger than reality to compensate for articulation inaccuracy
+            saturation_effort=36.0,
             velocity_limit=21.0,
             friction=0.0,
             stiffness=150.0,
