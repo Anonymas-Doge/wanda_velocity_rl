@@ -40,13 +40,16 @@ It allows you to develop in an isolated environment, outside of the core Isaac L
         python scripts/list_envs.py
         ```
 
-    - Running a task:
+    - Running Training:
 
         ```bash
-        # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-        python scripts/<RL_LIBRARY>/train.py --task=<TASK_NAME>
+        python ./scripts/rsl_rl/train.py --task="Isaac-Velocity-Flat-Wanda-v0" --num_envs=128
+        ```
+    
+    - Running Play:
 
-        python ./scripts/rsl_rl/train.py --task="Isaac-Velocity-Flat-Wanda-v0" --num_envs=
+        ```bash
+        python ./scripts/rsl_rl/play.py --task="Isaac-Velocity-Flat-Wanda-Play-v0" --num_envs=32
         ```
 
     - Running a task with dummy agents:

@@ -288,6 +288,22 @@ def step_frequency_reward(
     return torch.exp(-torch.abs(avg_freq - target_frequency))
 
 
+def base_height_reward(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    sensor_cfg: SceneEntityCfg,
+    target_clearance: float,
+    std: float,
+) -> torch.Tensor:
+    """Reward keeping the robot base at a target height above the ground estimated by the height scanner."""
+    asset: RigidObject = env.scene[asset_cfg.name]
+    height_scanner = env.scene.sensors[sensor_cfg.name]
+    base_height = asset.data.root_pos_w[:, 2]
+    ground_height = torch.mean(height_scanner.data.ray_hits_w[..., 2], dim=1)
+    clearance = base_height - ground_height
+    return torch.exp(-torch.square(clearance - target_clearance) / std)
+
+
 def base_orientation_penalty(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Penalize non-flat base orientation
 
