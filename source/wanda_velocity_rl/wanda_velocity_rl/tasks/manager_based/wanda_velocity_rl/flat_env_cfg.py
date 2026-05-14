@@ -214,7 +214,7 @@ class WandaRewardsCfg:
         params={
             "std": 0.04,
             "tanh_mult": 2.0,
-            "target_height": 0.12,
+            "target_height": 0.10,
             "asset_cfg": SceneEntityCfg("robot", body_names=".*foot_link"),
         },
     )
@@ -261,9 +261,9 @@ class WandaRewardsCfg:
     )
     step_frequency = RewardTermCfg(
         func=wanda_mdp.step_frequency_reward,
-        weight=2.0,
+        weight=3.0,
         params={
-            "target_frequency": 3.0,
+            "target_frequency": 2.0,
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link"),
         },
@@ -272,7 +272,7 @@ class WandaRewardsCfg:
         func=wanda_mdp.base_height_reward,
         weight=3.0,
         params={
-            "target_clearance": 0.35,
+            "target_clearance": 0.3,
             "std": 0.05,
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("height_scanner"),
@@ -280,7 +280,7 @@ class WandaRewardsCfg:
     )
     foot_contact_balance = RewardTermCfg(
         func=wanda_mdp.foot_contact_balance_penalty,
-        weight=-2.5,
+        weight=-2.0,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link")},
     )
 
@@ -288,7 +288,7 @@ class WandaRewardsCfg:
     action_smoothness = RewardTermCfg(func=wanda_mdp.action_smoothness_penalty, weight=-0.4)
     air_time_variance = RewardTermCfg(
         func=wanda_mdp.air_time_variance_penalty,
-        weight=-1.5,
+        weight=-2.5,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot_link")},
     )
     base_motion = RewardTermCfg(

@@ -14,8 +14,8 @@ models:
     initial_log_std: 0.0
     network:
       - name: net
-        input: STATES
-        layers: [512, 256, 128] # [128, 128, 128]
+        input: OBSERVATIONS
+        layers: [512, 256, 128]
         activations: elu
     output: ACTIONS
   value:  # see deterministic_model parameters
@@ -23,8 +23,8 @@ models:
     clip_actions: False
     network:
       - name: net
-        input: STATES
-        layers: [512, 256, 128] # [128, 128, 128]
+        input: OBSERVATIONS
+        layers: [512, 256, 128]
         activations: elu
     output: ONE
 
@@ -59,8 +59,8 @@ agent:
   ratio_clip: 0.2
   value_clip: 0.2
   clip_predicted_values: True
-  entropy_loss_scale: 0.0025 #0.01
-  value_loss_scale: 0.5 #1.0
+  entropy_loss_scale: 0.0025
+  value_loss_scale: 0.5
   kl_threshold: 0.0
   rewards_shaper_scale: 1.0
   time_limit_bootstrap: False
@@ -76,5 +76,5 @@ agent:
 # https://skrl.readthedocs.io/en/latest/api/trainers/sequential.html
 trainer:
   class: SequentialTrainer
-  timesteps: 480000 #7200
+  timesteps: 640000
   environment_info: log
